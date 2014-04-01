@@ -1,0 +1,12 @@
+{
+	"name" : "husker",
+	"version" : "0.0.1",
+	"dependencies" : {
+		"jquery"       : "latest",
+		"jquery-ui"    : "latest",
+		"bootstrap"    : "latest",
+        "flot"         : "latest",
+		"d3"           : "latest",
+        "font-awesome" : "latest"
+	}
+}
