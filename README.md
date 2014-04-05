@@ -1,8 +1,9 @@
-# [![Feather Label](https://raw.githubusercontent.com/jonahgeorge/featherlabel.co/master/public/images/featherlabel-logo.png)](http://featherlabel.com)
+# [![Feathercoin Logo](/public/images/feather-logo.png)](http://featherlabel.com) feather label
 
-Music and content sharing and distribution platform.
+Support your favorite indie artists with your favorite indie currency via this all-new music distribution platform.
 
 ## Installation
+
 
 ## Contributing
 
