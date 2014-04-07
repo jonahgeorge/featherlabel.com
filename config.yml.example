@@ -7,3 +7,8 @@ session:
   secret:
 
 port:
+
+amazon:
+  access:
+  secret:
+  bucket:
