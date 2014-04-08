@@ -8,7 +8,12 @@ Api Endpoint: [api.featherlabel.com](http://api.featherlabel.com)
 
 ## API
 
-### Index 
++ [Songs](#songs)
++ [Users](#users)
+
+
+### Songs
+##### Index 
 cURL Example
 ```
 curl -X GET http://api.featherlabel.com/song/
@@ -17,24 +22,25 @@ Response
 ```
 [
   {
-    "id": 1,
+    "id": 9,
     "title": "Tom Sawyer",
-    "artist": "Rush"
-  },
-  {
-    "id": 2,
-    "title": "Get Lucky",
-    "artist": "Daft Punk"
+    "artist": {
+      "id": 1,
+      "name": "Rush"
+    }
   },
   {
     "id": 3,
     "title": "The Violent Bear It Away",
-    "artist": "Moby"
+    "artist": {
+      "id": 2,
+      "name": Moby"
+    }
   }
 ]
 ```
 
-### Retrieve 
+##### Retrieve 
 cURL Example
 ```
 curl -X GET http://api.featherlabel.com/song/3
@@ -44,9 +50,29 @@ Response
 {
   "id": 3,
   "title": "The Violent Bear It Away",
-  "key": "songs/away.mp3",
+  "artist": {
+    "id": 1,
+    "name": "Moby"
+  },
   "url": "https://s3-us-west-2.amazonaws.com/media.jobgenius/songs/away.mp3?AWSAccessKeyId=AKIAJ2EASPWDMK6FOILA\u0026Expires=1396900314\u0026Signature=E8yr6E%2BMwwoeApW3%2FHhb2idENPA%3D",
-  "artist": "Moby"
+
 }
 ```
 Note: The authenticated url is not valid on its own and must be parsed.
+
+##### Upload
+cURL Example
+```
+```
+Response
+```
+```
+
+### Users
+##### Index 
+cURL Example
+```
+```
+Response
+```
+```
