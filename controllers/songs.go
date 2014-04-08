@@ -1,15 +1,16 @@
 package controllers
 
-import (
-	"database/sql"
-	"encoding/json"
-	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/jonahgeorge/featherlabel.com/models"
-	"github.com/mitchellh/goamz/s3"
-	"log"
-	"net/http"
-)
+import "database/sql"
+import "encoding/json"
+import "fmt"
+import "log"
+import "net/http"
+import "io/ioutil"
+import "time"
+
+import "github.com/gorilla/mux"
+import "github.com/jonahgeorge/featherlabel.com/models"
+import "github.com/mitchellh/goamz/s3"
 
 type Song struct{}
 
@@ -33,19 +34,34 @@ func (s Song) Index(db *sql.DB) http.HandlerFunc {
 // Create a song, add details into db and upload file to aws
 func (s Song) Create(db *sql.DB, bucket *s3.Bucket) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// 		file, header, err := r.FormFile("file")
-		// 		if err != nil {
-		// 			log.Printf("%s", err)
-		// 		}
 
-		// 		fmt.Printf("%s\n%+v\n", header.Filename, file)
+		// insert into db
+		id, err := models.Song{}.Create(db, map[string]interface{}{
+			"title":     r.FormValue("title"),
+			"artist_id": r.FormValue("artist"),
+		})
 
-		// 		b, err := ioutil.ReadAll(file)
-		// 		if err != nil {
-		// 			log.Printf("%s", err)
-		// 		}
+		if err != nil {
+			log.Printf("%s", err)
+		}
 
-		// 		ioutil.WriteFile(header.Filename, b, 0x777)
+		file, _, err := r.FormFile("file")
+		if err != nil {
+			log.Printf("%s", err)
+		}
+
+		// upload to aws
+		data, err := ioutil.ReadAll(file)
+		key := fmt.Sprintf("songs/%s/%d.mp3", r.FormValue("artist"), id)
+		fmt.Println(key)
+
+		err = bucket.Put(key, data, "audio/mpeg", s3.ACL("authenticated-read"))
+		if err != nil {
+			log.Printf("%s", err)
+		}
+
+		// Send response
+
 	}
 }
 
@@ -57,7 +73,14 @@ func (s Song) Retrieve(db *sql.DB, bucket *s3.Bucket) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 
 		params := mux.Vars(r)
-		song, err := models.Song{}.RetrieveById(db, bucket, params["id"])
+		song, err := models.Song{}.RetrieveById(db, params["id"])
+
+		expires := time.Now().Add(time.Duration(10) * time.Minute)
+		key := fmt.Sprintf("songs/%d/%d.mp3", song.Artist.Id, song.Id)
+
+		uri := bucket.SignedURL(key, expires)
+		song.SignedUrl = uri
+
 		bytes, err := json.MarshalIndent(song, "", "  ")
 		if err != nil {
 			log.Printf("%s", err)

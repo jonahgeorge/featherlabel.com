@@ -1,27 +1,25 @@
 package models
 
 import "database/sql"
-
-// import "fmt"
 import "log"
-import "time"
-
-// import "net/url"
-
-import "github.com/mitchellh/goamz/s3"
 
 type Song struct {
-	Id               int64  `db:"id"      json:"id"`
-	Title            string `db:"title"   json:"title"`
-	Key              string `db:"aws_key" json:"key,omitempty"`
-	AuthenticatedUrl string `json:"url,omitempty"`
-	Artist           string `db:"artist"  json:"artist"`
+	Id        int64  `json:"id"`
+	Title     string `json:"title"`
+	Artist    Artist `json:"artist"`
+	SignedUrl string `json:"url,omitempty"`
+}
+
+type Artist struct {
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
 }
 
 // Retrieve all songs
 func (s Song) RetrieveAll(db *sql.DB) ([]Song, error) {
 
-	rows, err := db.Query("SELECT id, title, artist FROM Songs")
+	rows, err := db.Query("SELECT Songs.`id`, Songs.`title`, Artists.`id`, Artists.`name` FROM Songs LEFT JOIN Artists ON Artists.`id` = Songs.`artist_id`")
+
 	if err != nil {
 		log.Printf("%s", err)
 	}
@@ -30,7 +28,7 @@ func (s Song) RetrieveAll(db *sql.DB) ([]Song, error) {
 
 	for rows.Next() {
 		var song Song
-		err := rows.Scan(&song.Id, &song.Title, &song.Artist)
+		err := rows.Scan(&song.Id, &song.Title, &song.Artist.Id, &song.Artist.Name)
 		if err != nil {
 			log.Printf("%s", err)
 		}
@@ -41,19 +39,16 @@ func (s Song) RetrieveAll(db *sql.DB) ([]Song, error) {
 }
 
 // Retrieve a single song by its id (primary key)
-func (s Song) RetrieveById(db *sql.DB, bucket *s3.Bucket, id string) (Song, error) {
+func (s Song) RetrieveById(db *sql.DB, id string) (Song, error) {
 
 	var song Song
 
-	row := db.QueryRow("SELECT id, title, aws_key, artist FROM Songs WHERE id = ?", id)
-	err := row.Scan(&song.Id, &song.Title, &song.Key, &song.Artist)
+	row := db.QueryRow("SELECT Songs.`id`, Songs.`title`, Artists.`id`, Artists.`name` FROM Songs LEFT JOIN Artists ON Artists.`id` = Songs.`artist_id` WHERE Songs.`id` = ?", id)
+
+	err := row.Scan(&song.Id, &song.Title, &song.Artist.Id, &song.Artist.Name)
 	if err != nil {
 		log.Printf("%s", err)
 	}
-
-	expires := time.Now().Add(time.Duration(10) * time.Minute)
-	uri := bucket.SignedURL(song.Key, expires)
-	song.AuthenticatedUrl = uri
 
 	return song, err
 }
@@ -68,7 +63,18 @@ func (s Song) RetrieveById(db *sql.DB, bucket *s3.Bucket, id string) (Song, erro
 // 	return nil, nil
 // }
 
-// // Insert a song record into db
-// func (s Song) Create() (Song, error) {
-// 	return nil, nil
-// }
+// Insert a song record into db
+func (s Song) Create(db *sql.DB, data map[string]interface{}) (int64, error) {
+
+	result, err := db.Exec("INSERT INTO Songs (title, artist_id) VALUES (?, ?)", data["title"], data["artist_id"])
+	if err != nil {
+		log.Printf("%s", err)
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		log.Printf("%s", err)
+	}
+
+	return id, err
+}
