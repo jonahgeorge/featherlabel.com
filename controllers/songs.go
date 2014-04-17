@@ -1,16 +1,18 @@
 package controllers
 
-import "database/sql"
-import "encoding/json"
-import "fmt"
-import "log"
-import "net/http"
-import "io/ioutil"
-import "time"
+import (
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"time"
 
-import "github.com/gorilla/mux"
-import "github.com/jonahgeorge/featherlabel.com/models"
-import "github.com/mitchellh/goamz/s3"
+	"github.com/gorilla/mux"
+	"github.com/jonahgeorge/featherlabel.com/models"
+	"github.com/mecop/mecop-api/libraries"
+	"github.com/mitchellh/goamz/s3"
+)
 
 type Song struct{}
 
@@ -18,13 +20,16 @@ type Song struct{}
 func (s Song) Index(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		// set response headers
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Content-Type", "application/json")
 
 		songs, err := models.Song{}.RetrieveAll(db)
-		bytes, err := json.MarshalIndent(songs, "", "  ")
+
+		bytes, err := json.Marshal(songs)
 		if err != nil {
-			log.Printf("%s", err)
+			lib.QuickResponse(w, "failure", err.Error())
+			return
 		}
 
 		fmt.Fprintf(w, "%s", bytes)
@@ -42,12 +47,14 @@ func (s Song) Create(db *sql.DB, bucket *s3.Bucket) http.HandlerFunc {
 		})
 
 		if err != nil {
-			log.Printf("%s", err)
+			lib.QuickResponse(w, "failure", err.Error())
+			return
 		}
 
 		file, _, err := r.FormFile("file")
 		if err != nil {
-			log.Printf("%s", err)
+			lib.QuickResponse(w, "failure", err.Error())
+			return
 		}
 
 		// upload to aws
@@ -57,7 +64,8 @@ func (s Song) Create(db *sql.DB, bucket *s3.Bucket) http.HandlerFunc {
 
 		err = bucket.Put(key, data, "audio/mpeg", s3.ACL("authenticated-read"))
 		if err != nil {
-			log.Printf("%s", err)
+			lib.QuickResponse(w, "failure", err.Error())
+			return
 		}
 
 		// Send response
@@ -74,6 +82,10 @@ func (s Song) Retrieve(db *sql.DB, bucket *s3.Bucket) http.HandlerFunc {
 
 		params := mux.Vars(r)
 		song, err := models.Song{}.RetrieveById(db, params["id"])
+		if err != nil {
+			lib.QuickResponse(w, "failure", err.Error())
+			return
+		}
 
 		expires := time.Now().Add(time.Duration(10) * time.Minute)
 		key := fmt.Sprintf("songs/%d/%d.mp3", song.Artist.Id, song.Id)
@@ -83,7 +95,8 @@ func (s Song) Retrieve(db *sql.DB, bucket *s3.Bucket) http.HandlerFunc {
 
 		bytes, err := json.MarshalIndent(song, "", "  ")
 		if err != nil {
-			log.Printf("%s", err)
+			lib.QuickResponse(w, "failure", err.Error())
+			return
 		}
 
 		fmt.Fprintf(w, "%s", bytes)
