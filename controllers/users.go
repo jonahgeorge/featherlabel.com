@@ -11,8 +11,8 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 
 	"github.com/dchest/authcookie"
+	"github.com/feather-label/api/libraries"
 	"github.com/feather-label/api/models"
-	"github.com/mecop/mecop-api/libraries"
 )
 
 type User struct{}

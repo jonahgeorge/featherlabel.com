@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/feather-label/api/libraries"
 	"github.com/feather-label/api/models"
 	"github.com/gorilla/mux"
-	"github.com/mecop/mecop-api/libraries"
 	"github.com/mitchellh/goamz/s3"
 )
 
