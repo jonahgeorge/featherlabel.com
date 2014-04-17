@@ -1,7 +1,9 @@
 package models
 
-import "database/sql"
-import "log"
+import (
+	"database/sql"
+	"log"
+)
 
 type Song struct {
 	Id        int64  `json:"id"`
