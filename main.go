@@ -7,10 +7,10 @@ import (
 	"net/http"
 
 	_ "github.com/Go-SQL-Driver/MySQL"
+	"github.com/feather-label/api/controllers"
 	"github.com/gorilla/mux"
 	"github.com/gosexy/to"
 	"github.com/gosexy/yaml"
-	"github.com/jonahgeorge/featherlabel.com/controllers"
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/s3"
 )
