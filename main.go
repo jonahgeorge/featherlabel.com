@@ -1,16 +1,19 @@
 package main
 
-import "database/sql"
-import "log"
-import "net/http"
+import (
+	"database/sql"
+	"fmt"
+	"log"
+	"net/http"
 
-import _ "github.com/Go-SQL-Driver/MySQL"
-import "github.com/gorilla/mux"
-import "github.com/jonahgeorge/featherlabel.com/controllers"
-import "github.com/mitchellh/goamz/aws"
-import "github.com/mitchellh/goamz/s3"
-import "github.com/gosexy/yaml"
-import "github.com/gosexy/to"
+	_ "github.com/Go-SQL-Driver/MySQL"
+	"github.com/gorilla/mux"
+	"github.com/gosexy/to"
+	"github.com/gosexy/yaml"
+	"github.com/jonahgeorge/featherlabel.com/controllers"
+	"github.com/mitchellh/goamz/aws"
+	"github.com/mitchellh/goamz/s3"
+)
 
 func main() {
 
@@ -20,49 +23,86 @@ func main() {
 		log.Fatal(err)
 	}
 
-	user := to.String(conf.Get("database", "user"))
-	pass := to.String(conf.Get("database", "pass"))
-	name := to.String(conf.Get("database", "name"))
-	// secret := to.String(conf.Get("session", "secret"))
-	port := to.String(conf.Get("port"))
-	accessKey := to.String(conf.Get("amazon", "access"))
-	secretKey := to.String(conf.Get("amazon", "secret"))
-	bucketKey := to.String(conf.Get("amazon", "bucket"))
-
-	// open database connection
-	db, err := sql.Open("mysql", user+":"+pass+"@/"+name)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// initalize database connection
+	db := InitializeDb(conf)
 	defer db.Close()
-	db.SetMaxIdleConns(100)
 
-	// configure aws authentication
-	auth, err := aws.GetAuth(accessKey, secretKey)
-	if err != nil {
-		log.Printf("%s", err)
-	}
+	// initialize s3 client
+	bucket := InitializeAWS(conf)
 
-	// Try loading this from conf file?
-	client := s3.New(auth, aws.USWest2)
-	bucket := client.Bucket(bucketKey)
-
-	// setup router
-	r := mux.NewRouter()
-
-	// register routes
-	r.HandleFunc("/song", controllers.Song{}.Index(db)).Methods("GET")
-	r.HandleFunc("/song", controllers.Song{}.Create(db, bucket)).Methods("POST")
-	r.HandleFunc("/song/{id:[0-9]+}", controllers.Song{}.Retrieve(db, bucket)).Methods("GET")
-	r.HandleFunc("/song/{id:[0-9]+}", controllers.Song{}.Update(db, bucket)).Methods("PUT")
-	r.HandleFunc("/song/{id:[0-9]+}", controllers.Song{}.Delete(db, bucket)).Methods("DELETE")
+	// initialize router
+	router := InitializeRouter(db, bucket, conf)
 
 	// pass router into http server
-	http.Handle("/", r)
+	http.Handle("/", router)
+
+	// grab port from conf file
+	port := fmt.Sprintf(":%s", to.String(conf.Get("server", "port")))
 
 	// spin 'er up
-	err = http.ListenAndServe(":"+port, nil)
+	err = http.ListenAndServe(port, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func InitializeDb(conf *yaml.Yaml) *sql.DB {
+
+	// retrieve credentials from config file
+	username := to.String(conf.Get("database", "username"))
+	password := to.String(conf.Get("database", "password"))
+	name := to.String(conf.Get("database", "name"))
+
+	// start up mysql connection
+	db, err := sql.Open("mysql", username+":"+password+"@/"+name)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// set maximum number of connections in the idle connection pool
+	db.SetMaxIdleConns(100)
+
+	return db
+}
+
+func InitializeRouter(db *sql.DB, bucket *s3.Bucket, conf *yaml.Yaml) *mux.Router {
+
+	secret := []byte(to.String(conf.Get("server", "secret")))
+
+	// setup new router
+	router := mux.NewRouter()
+
+	// song routes
+	router.HandleFunc("/songs", controllers.Song{}.Index(db)).Methods("GET")
+	router.HandleFunc("/songs", controllers.Song{}.Create(db, bucket)).Methods("POST")
+	router.HandleFunc("/songs/{id:[0-9]+}", controllers.Song{}.Retrieve(db, bucket)).Methods("GET")
+	router.HandleFunc("/songs/{id:[0-9]+}", controllers.Song{}.Update(db, bucket)).Methods("PUT")
+	router.HandleFunc("/songs/{id:[0-9]+}", controllers.Song{}.Delete(db, bucket)).Methods("DELETE")
+
+	// user routes
+	router.HandleFunc("/users", controllers.User{}.Index(db)).Methods("GET")
+	router.HandleFunc("/users", controllers.User{}.Create(db)).Methods("POST")
+	router.HandleFunc("/authenticate", controllers.User{}.Authenticate(db)).Methods("POST")
+	router.HandleFunc("/credentials", controllers.User{}.Credentials(db, secret)).Methods("POST")
+
+	return router
+}
+
+func InitializeAWS(conf *yaml.Yaml) *s3.Bucket {
+
+	// load variables from config
+	access := to.String(conf.Get("amazon", "access"))
+	secret := to.String(conf.Get("amazon", "secret"))
+	bucket := to.String(conf.Get("amazon", "bucket"))
+
+	// configure aws authentication
+	auth, err := aws.GetAuth(access, secret)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// [todo] - load region from config file
+	client := s3.New(auth, aws.USWest2)
+
+	return client.Bucket(bucket)
 }
