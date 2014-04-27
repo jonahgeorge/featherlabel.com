@@ -1,9 +1,6 @@
 package models
 
-import (
-	"database/sql"
-	"log"
-)
+import "log"
 
 type Song struct {
 	Id        int64  `json:"id"`
@@ -18,7 +15,7 @@ type Artist struct {
 }
 
 // Retrieve all songs
-func (s Song) RetrieveAll(db *sql.DB) ([]Song, error) {
+func (s Song) RetrieveAll() ([]Song, error) {
 
 	rows, err := db.Query("SELECT Songs.`id`, Songs.`title`, Artists.`id`, Artists.`name` FROM Songs LEFT JOIN Artists ON Artists.`id` = Songs.`artist_id`")
 
@@ -41,11 +38,16 @@ func (s Song) RetrieveAll(db *sql.DB) ([]Song, error) {
 }
 
 // Retrieve a single song by its id (primary key)
-func (s Song) RetrieveById(db *sql.DB, id string) (Song, error) {
+func (s Song) RetrieveById(id string) (Song, error) {
 
 	var song Song
 
-	row := db.QueryRow("SELECT Songs.`id`, Songs.`title`, Artists.`id`, Artists.`name` FROM Songs LEFT JOIN Artists ON Artists.`id` = Songs.`artist_id` WHERE Songs.`id` = ?", id)
+	row := db.QueryRow(`
+      SELECT Songs.id, Songs.title, Artists.id, Artists.name 
+      FROM Songs 
+      LEFT JOIN Artists ON Artists.id = Songs.artist_id 
+      WHERE Songs.id = ?
+    `, id)
 
 	err := row.Scan(&song.Id, &song.Title, &song.Artist.Id, &song.Artist.Name)
 	if err != nil {
@@ -66,7 +68,7 @@ func (s Song) RetrieveById(db *sql.DB, id string) (Song, error) {
 // }
 
 // Insert a song record into db
-func (s Song) Create(db *sql.DB, data map[string]interface{}) (int64, error) {
+func (s Song) Create(data map[string]interface{}) (int64, error) {
 
 	result, err := db.Exec("INSERT INTO Songs (title, artist_id) VALUES (?, ?)", data["title"], data["artist_id"])
 	if err != nil {

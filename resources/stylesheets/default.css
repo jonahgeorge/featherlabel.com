@@ -1,0 +1,51 @@
+.trending h3 {
+  font-size:14px;
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
+.trending p {
+  margin-bottom: 0;
+}
+
+.clickable {
+  cursor: pointer;
+  color: #55acee;
+}
+
+audio {
+  margin-top:25px;
+  width: 100%;
+}
+
+footer {
+  margin-top:50px;
+  margin-bottom:100px;
+}
+
+footer > .container {
+  border-top:solid 1px #eee;
+  padding-top:25px;
+}
+
+.footer-column > h5 {
+  text-transform: uppercase;
+}
+
+.footer-column > a,
+.footer-column > p {
+  /*color:#747474;*/
+  position:relative;
+  display:block;
+  padding:3px 0;
+}
+
+.featured-artist {
+  margin-bottom:25px;
+  width:100%;
+}
+
+@media (min-width: 992px) {
+  .featured-artist {
+    margin-bottom:0;
+  }
+}

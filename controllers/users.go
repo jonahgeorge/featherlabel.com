@@ -1,9 +1,7 @@
 package controllers
 
 import (
-	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -11,36 +9,36 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 
 	"github.com/dchest/authcookie"
-	"github.com/feather-label/api/libraries"
-	"github.com/feather-label/api/models"
+	"github.com/gorilla/mux"
+	"github.com/jonahgeorge/featherlabel.com/libraries"
+	"github.com/jonahgeorge/featherlabel.com/models"
 )
 
 type User struct{}
 
-func (u User) Index(db *sql.DB) http.HandlerFunc {
+func (u User) Index() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// set response headers
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Content-Type", "application/json")
-
-		users, err := models.User{}.RetrieveAll(db)
+		// Retrieve all users
+		users, err := models.User{}.RetrieveAll()
 		if err != nil {
-			lib.QuickResponse(w, "failure", err.Error())
+			// lib.QuickResponse(w, "failure", err.Error())
 			return
 		}
 
-		bytes, err := json.Marshal(users)
-		if err != nil {
-			lib.QuickResponse(w, "failure", err.Error())
-			return
+		// Render users/index template
+		if err = t.ExecuteTemplate(w, "users/index", map[string]interface{}{
+			"title": "Users",
+			"songs": users,
+			//"session": session,
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
-		fmt.Fprintf(w, "%s\n", bytes)
 	}
 }
 
-func (u User) Create(db *sql.DB) http.HandlerFunc {
+func (u User) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// set response headers
@@ -70,7 +68,7 @@ func (u User) Create(db *sql.DB) http.HandlerFunc {
 		creds.Password = string(hashedPass)
 
 		// Insert user into database
-		_, err = models.User{}.Create(db, creds)
+		_, err = models.User{}.Create(creds)
 		if err != nil {
 			lib.QuickResponse(w, "failure", err.Error())
 			return
@@ -82,7 +80,7 @@ func (u User) Create(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func (u User) Authenticate(db *sql.DB) http.HandlerFunc {
+func (u User) Authenticate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// Set response headers
@@ -103,7 +101,7 @@ func (u User) Authenticate(db *sql.DB) http.HandlerFunc {
 		}
 
 		// Retrieve user with email
-		user, err := models.User{}.RetrieveByEmail(db, *credentials.Email)
+		user, err := models.User{}.RetrieveByEmail(*credentials.Email)
 		if err != nil {
 			lib.QuickResponse(w, "failure", err.Error())
 			return
@@ -132,7 +130,24 @@ func (u User) Authenticate(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func (u User) Credentials(db *sql.DB, secret []byte) http.HandlerFunc {
+func (u User) Retrieve() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		params := mux.Vars(r)
+
+		user, err := models.User{}.RetrieveById(params["id"])
+		if err != nil {
+			// send error
+		}
+
+		if err = t.ExecuteTemplate(w, "users/show", map[string]interface{}{
+			"User": user,
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}
+
+func (u User) Credentials(secret []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		if r.FormValue("token") == "" {

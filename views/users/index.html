@@ -1,0 +1,33 @@
+{{define "users/index"}}
+<!DOCTYPE html>
+<html>
+  <head>
+    {{template "shared/head" .}}
+  </head>
+  <body>
+    {{template "shared/header" .}}
+
+    <div class="container">
+      <div class="page-header">
+        <h2>Users Index</h2>
+      </div>
+
+      <table class="table table-striped">
+        <thead>
+          <th>Name</th>
+        </thead>
+        <tbody>
+          {{range .Users}}
+          <tr>
+            <td>{{ .Name }}</td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+
+    {{template "shared/footer" .}}
+    {{template "shared/foot" .}}
+  </body>
+</html>
+{{end}}

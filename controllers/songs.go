@@ -1,47 +1,46 @@
 package controllers
 
 import (
-	"database/sql"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
 
-	"github.com/feather-label/api/libraries"
-	"github.com/feather-label/api/models"
 	"github.com/gorilla/mux"
+	"github.com/jonahgeorge/featherlabel.com/libraries"
+	"github.com/jonahgeorge/featherlabel.com/models"
 	"github.com/mitchellh/goamz/s3"
 )
 
 type Song struct{}
 
 // Retrieve list of songs without authenticated urls
-func (s Song) Index(db *sql.DB) http.HandlerFunc {
+func (s Song) Index() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// set response headers
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Content-Type", "application/json")
-
-		songs, err := models.Song{}.RetrieveAll(db)
-
-		bytes, err := json.Marshal(songs)
+		// Retrieve all songs
+		songs, err := models.Song{}.RetrieveAll()
 		if err != nil {
-			lib.QuickResponse(w, "failure", err.Error())
-			return
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
-		fmt.Fprintf(w, "%s", bytes)
+		// Render songs template
+		if err = t.ExecuteTemplate(w, "songs/index", map[string]interface{}{
+			"title": "Songs",
+			"songs": songs,
+			//"session": session,
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	}
 }
 
 // Create a song, add details into db and upload file to aws
-func (s Song) Create(db *sql.DB, bucket *s3.Bucket) http.HandlerFunc {
+func (s Song) Create(bucket *s3.Bucket) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// insert into db
-		id, err := models.Song{}.Create(db, map[string]interface{}{
+		id, err := models.Song{}.Create(map[string]interface{}{
 			"title":     r.FormValue("title"),
 			"artist_id": r.FormValue("artist"),
 		})
@@ -74,16 +73,16 @@ func (s Song) Create(db *sql.DB, bucket *s3.Bucket) http.HandlerFunc {
 }
 
 // Retrieve a song, details from db and authenticate url with goamz
-func (s Song) Retrieve(db *sql.DB, bucket *s3.Bucket) http.HandlerFunc {
+func (s Song) Retrieve(bucket *s3.Bucket) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Content-Type", "application/json")
-
+		// get url params
 		params := mux.Vars(r)
-		song, err := models.Song{}.RetrieveById(db, params["id"])
+
+		// retrieve song by id
+		song, err := models.Song{}.RetrieveById(params["id"])
 		if err != nil {
-			lib.QuickResponse(w, "failure", err.Error())
+			// lib.QuickResponse(w, "failure", err.Error())
 			return
 		}
 
@@ -93,25 +92,35 @@ func (s Song) Retrieve(db *sql.DB, bucket *s3.Bucket) http.HandlerFunc {
 		uri := bucket.SignedURL(key, expires)
 		song.SignedUrl = uri
 
-		bytes, err := json.MarshalIndent(song, "", "  ")
-		if err != nil {
-			lib.QuickResponse(w, "failure", err.Error())
-			return
+		//bytes, err := json.MarshalIndent(song, "", "  ")
+		//if err != nil {
+		//	lib.QuickResponse(w, "failure", err.Error())
+		//	return
+		//}
+		//
+		//fmt.Fprintf(w, "%s", bytes)
+
+		// Render songs template
+		if err = t.ExecuteTemplate(w, "songs/show", map[string]interface{}{
+			"Title": song.Title,
+			"Song":  song,
+			//"session": session,
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
-		fmt.Fprintf(w, "%s", bytes)
 	}
 }
 
 // Update a song, details to db overwrite aws key if new file
-func (s Song) Update(db *sql.DB, bucket *s3.Bucket) http.HandlerFunc {
+func (s Song) Update(bucket *s3.Bucket) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
 
 // Delete a song, remove details from db and delete key from aws
-func (s Song) Delete(db *sql.DB, bucket *s3.Bucket) http.HandlerFunc {
+func (s Song) Delete(bucket *s3.Bucket) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 	}

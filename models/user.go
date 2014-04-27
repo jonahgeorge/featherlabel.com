@@ -11,7 +11,7 @@ type User struct {
 	Password    string  `json:"password"`
 }
 
-func (u User) RetrieveAll(db *sql.DB) ([]User, error) {
+func (u User) RetrieveAll() ([]User, error) {
 
 	var users []User
 
@@ -34,7 +34,7 @@ func (u User) RetrieveAll(db *sql.DB) ([]User, error) {
 	return users, err
 }
 
-func (u User) RetrieveByName(db *sql.DB, name string) ([]User, error) {
+func (u User) RetrieveByName(name string) ([]User, error) {
 
 	var users []User
 
@@ -57,7 +57,7 @@ func (u User) RetrieveByName(db *sql.DB, name string) ([]User, error) {
 	return users, err
 }
 
-func (u User) RetrieveByEmail(db *sql.DB, email string) (User, error) {
+func (u User) RetrieveByEmail(email string) (User, error) {
 	var user User
 
 	row := db.QueryRow("SELECT * FROM Users WHERE email = ?", email)
@@ -69,12 +69,14 @@ func (u User) RetrieveByEmail(db *sql.DB, email string) (User, error) {
 	return user, err
 }
 
-func (u User) RetrieveById(db *sql.DB, id string) (User, error) {
+func (u User) RetrieveById(id string) (User, error) {
 	var user User
-	return user, nil
+	row := db.QueryRow("SELECT * FROM Users WHERE id = ?", id)
+	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.DisplayName, &user.Timestamp, &user.Password)
+	return user, err
 }
 
-func (u User) Create(db *sql.DB, user User) (sql.Result, error) {
+func (u User) Create(user User) (sql.Result, error) {
 
 	result, err := db.Exec("INSERT INTO Users (name, display_name, email, password) VALUES (?, ?, ?, ?)", user.Name, user.DisplayName, user.Email, user.Password)
 	if err != nil {
@@ -84,12 +86,12 @@ func (u User) Create(db *sql.DB, user User) (sql.Result, error) {
 	return result, err
 }
 
-func (u User) Update(db *sql.DB) (User, error) {
+func (u User) Update() (User, error) {
 	var user User
 	return user, nil
 }
 
-func (u User) Delete(db *sql.DB) (User, error) {
+func (u User) Delete() (User, error) {
 	var user User
 	return user, nil
 }
