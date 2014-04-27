@@ -53,6 +53,7 @@ func InitializeRouter(bucket *s3.Bucket, conf *yaml.Yaml) *mux.Router {
 
 	// user routes
 	router.HandleFunc("/users", controllers.User{}.Index()).Methods("GET")
+	router.HandleFunc("/users/{id:[0-9]+}", controllers.User{}.Retrieve()).Methods("GET")
 	router.HandleFunc("/users", controllers.User{}.Create()).Methods("POST")
 	router.HandleFunc("/authenticate", controllers.User{}.Authenticate()).Methods("POST")
 	router.HandleFunc("/credentials", controllers.User{}.Credentials(secret)).Methods("POST")

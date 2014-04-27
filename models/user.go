@@ -15,22 +15,25 @@ func (u User) RetrieveAll() ([]User, error) {
 
 	var users []User
 
-	rows, err := db.Query("SELECT id, name, email, display_name, timestamp, password FROM Users")
+	rows, err := db.Query(`
+    SELECT 
+      id, name, email, display_name, timestamp, password 
+    FROM 
+      Users
+    `)
 	if err != nil {
 		return users, err
 	}
 
 	for rows.Next() {
 		var user User
-
-		err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.DisplayName, &user.Timestamp, &user.Password)
+		err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.DisplayName,
+			&user.Timestamp, &user.Password)
 		if err != nil {
 			return users, err
 		}
-
 		users = append(users, user)
 	}
-
 	return users, err
 }
 
@@ -38,22 +41,59 @@ func (u User) RetrieveByName(name string) ([]User, error) {
 
 	var users []User
 
-	rows, err := db.Query("SELECT id, name, email, display_name, timestamp FROM Users WHERE name LIKE %?% OR display_name LIKE %?%", name, name)
+	rows, err := db.Query(`
+    SELECT 
+      id, name, email, display_name, timestamp 
+    FROM 
+      Users 
+    WHERE 
+      name LIKE %?% 
+    OR 
+      display_name LIKE %?%
+    `, name, name)
 	if err != nil {
 		return users, err
 	}
 
 	for rows.Next() {
 		var user User
-
-		err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.DisplayName, &user.Timestamp)
+		err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.DisplayName,
+			&user.Timestamp)
 		if err != nil {
 			return users, err
 		}
-
 		users = append(users, user)
 	}
+	return users, err
+}
 
+func (u User) Featured() ([]User, error) {
+
+	var users []User
+
+	rows, err := db.Query(`
+    SELECT 
+      id, name, email, display_name, timestamp 
+    FROM 
+      Users 
+    ORDER BY 
+      RAND()
+    LIMIT 
+      4
+    `)
+	if err != nil {
+		return users, err
+	}
+
+	for rows.Next() {
+		var user User
+		err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.DisplayName,
+			&user.Timestamp)
+		if err != nil {
+			return users, err
+		}
+		users = append(users, user)
+	}
 	return users, err
 }
 

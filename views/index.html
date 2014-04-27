@@ -8,28 +8,21 @@
     {{template "shared/header" .}}
 
     <div class="container">
-      <div class="alert alert-danger alert-dismissable">
-        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-        <strong>Warning!</strong> This website is still in early alpha. Expect things to break.
-      </div>
-    </div>
 
-    <div class="container">
-
-      <h3>Featured Artists</h3>
+      <h3>Featured Users</h3>
       <div class="row">
+        {{range .Users}}
         <div class="col-xs-6 col-md-3">
-          <a href="#"><img class="img-responsive featured-artist" src="https://identicons.github.com/1.png"></a>
+          <div class="thumbnail trending">
+            <a href="/users/{{.Id}}">
+              <img class="img-responsive featured-artist" src="https://identicons.github.com/{{.Id}}.png">
+              <div class="caption">
+                <h3>{{.Name}}</h3>
+              </div>
+            </a>
+          </div>
         </div>
-        <div class="col-xs-6 col-md-3">
-          <a href="#"><img class="img-responsive featured-artist" src="https://identicons.github.com/2.png"></a>
-        </div>
-        <div class="col-xs-6 col-md-3">
-          <a href="#"><img class="img-responsive featured-artist" src="https://identicons.github.com/3.png"></a>
-        </div>
-        <div class="col-xs-6 col-md-3">
-          <a href="#"><img class="img-responsive featured-artist" src="https://identicons.github.com/4.png"></a>
-        </div>
+        {{end}}
       </div>
 
       <h3>Trending Songs</h3>

@@ -11,14 +11,21 @@ type Page struct{}
 func (p Page) Index() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// Retrieve all songs
+		// Retrieve featured songs
 		songs, err := models.Song{}.RetrieveAll()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
+		// Retrieve featured users
+		users, err := models.User{}.Featured()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
 		if err := t.ExecuteTemplate(w, "index", map[string]interface{}{
 			"Songs": songs,
+			"Users": users,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 

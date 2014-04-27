@@ -1,0 +1,23 @@
+{{define "users/show"}}
+<!DOCTYPE html>
+<html>
+  <head>
+    {{template "shared/head" .}}
+  </head>
+  <body>
+    {{template "shared/header" .}}
+
+    <div class="container">
+      <div class="page-header">
+        <h2>{{ .User.Name }}</h2>
+      </div>
+
+      <!-- more here -->
+
+    </div>
+
+    {{template "shared/footer" .}}
+    {{template "shared/foot" }}
+  </body>
+</html>
+{{end}}
