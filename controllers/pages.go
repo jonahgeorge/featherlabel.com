@@ -60,13 +60,3 @@ func (p Page) About() http.HandlerFunc {
 		}
 	}
 }
-
-func (p Page) Terms() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.ExecuteTemplate(w, "terms", map[string]interface{}{
-			"Title": "Terms",
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	}
-}
