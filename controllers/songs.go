@@ -87,7 +87,7 @@ func (s Song) Retrieve(bucket *s3.Bucket) http.HandlerFunc {
 		}
 
 		expires := time.Now().Add(time.Duration(10) * time.Minute)
-		key := fmt.Sprintf("songs/%d/%d.mp3", song.Artist.Id, song.Id)
+		key := fmt.Sprintf("songs/%d/%d.mp3", song.User.Id, song.Id)
 
 		uri := bucket.SignedURL(key, expires)
 		song.SignedUrl = uri

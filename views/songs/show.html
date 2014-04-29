@@ -17,7 +17,7 @@
 
           <div class="col-sm-9">
             <h1>{{ .Song.Title }}</h1>
-            <h3>{{ .Song.Artist.Name }}</h3>
+            <h3>{{ .Song.User.Name }}</h3>
 
             <audio id="player" controls>
             <source src="{{.Song.SignedUrl}}" type="audio/mpeg">
@@ -26,27 +26,6 @@
         </div>
       </div>
 
-      <!--
-      <div class="col-sm-4">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <span>More by {{ .Song.Artist.Name }}</span>
-          </div>
-          <div class="panel-body">
-          </div>
-        </div>
-      </div>
-
-      <div class="col-sm-8">
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <span>Comments</span>
-          </div>
-          <div class="panel-body">
-          </div>
-        </div>
-      </div>
-      -->
     </div>
 
     {{template "shared/footer" .}}

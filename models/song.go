@@ -5,31 +5,65 @@ import "log"
 type Song struct {
 	Id        int64  `json:"id"`
 	Title     string `json:"title"`
-	Artist    Artist `json:"artist"`
+	User      User   `json:"user"`
 	SignedUrl string `json:"url,omitempty"`
-}
-
-type Artist struct {
-	Id   int64  `json:"id"`
-	Name string `json:"name"`
 }
 
 // Retrieve all songs
 func (s Song) RetrieveAll() ([]Song, error) {
 
-	rows, err := db.Query("SELECT Songs.`id`, Songs.`title`, Artists.`id`, Artists.`name` FROM Songs LEFT JOIN Artists ON Artists.`id` = Songs.`artist_id`")
+	var songs []Song
+
+	rows, err := db.Query(`
+    SELECT 
+      Songs.id, Songs.title, Users.id, 
+      IF(Users.display_name, Users.display_name, Users.name)
+    FROM 
+      Songs 
+    LEFT JOIN 
+      Users ON Users.id = Songs.artist_id
+    `)
 
 	if err != nil {
-		log.Printf("%s", err)
+		return songs, err
 	}
-
-	var songs []Song
 
 	for rows.Next() {
 		var song Song
-		err := rows.Scan(&song.Id, &song.Title, &song.Artist.Id, &song.Artist.Name)
+		err := rows.Scan(&song.Id, &song.Title, &song.User.Id, &song.User.Name)
 		if err != nil {
-			log.Printf("%s", err)
+			return songs, err
+		}
+		songs = append(songs, song)
+	}
+
+	return songs, err
+}
+
+func (u User) GetSongs() ([]Song, error) {
+
+	var songs []Song
+
+	query := `SELECT 
+        Songs.id, Songs.title, Users.id, 
+        IF(Users.display_name, Users.display_name, Users.name)
+      FROM 
+        Songs 
+      LEFT JOIN 
+        Users ON Users.id = Songs.artist_id
+      WHERE
+        Songs.artist_id = ?`
+
+	rows, err := db.Query(query, u.Id)
+	if err != nil {
+		return songs, err
+	}
+
+	for rows.Next() {
+		var song Song
+		err := rows.Scan(&song.Id, &song.Title, &song.User.Id, &song.User.Name)
+		if err != nil {
+			return songs, err
 		}
 		songs = append(songs, song)
 	}
@@ -43,15 +77,20 @@ func (s Song) RetrieveById(id string) (Song, error) {
 	var song Song
 
 	row := db.QueryRow(`
-      SELECT Songs.id, Songs.title, Artists.id, Artists.name 
-      FROM Songs 
-      LEFT JOIN Artists ON Artists.id = Songs.artist_id 
-      WHERE Songs.id = ?
+      SELECT 
+        Songs.id, Songs.title, Users.id, 
+        IF(Users.display_name, Users.display_name, Users.name)
+      FROM 
+        Songs 
+      LEFT JOIN 
+        Users ON Users.id = Songs.artist_id 
+      WHERE 
+        Songs.id = ?
     `, id)
 
-	err := row.Scan(&song.Id, &song.Title, &song.Artist.Id, &song.Artist.Name)
+	err := row.Scan(&song.Id, &song.Title, &song.User.Id, &song.User.Name)
 	if err != nil {
-		log.Printf("%s", err)
+		return song, err
 	}
 
 	return song, err

@@ -8,14 +8,32 @@
     {{template "shared/header" .}}
 
     <div class="container">
-      <div class="page-header">
-        <h2>{{ .User.Name }}</h2>
+      <div class="col-sm-12 row">
+        <div class="col-sm-3">
+          <img class="img-responsive featured-artist" 
+               src="https://identicons.github.com/{{.User.Id}}.png">
+        </div>
+
+        <div class="col-sm-9">
+          <h2>{{if .User.DisplayName}}{{.User.DisplayName}}{{else}}{{ .User.Name }}{{end}}</h2>
+          <p>Biography</p>
+        </div>
       </div>
 
-      <!-- more here -->
+      <div class="col-sm-6">
+        <h3>Songs</h3>
+        <div class="list-group">
+          {{range .Songs}}
+          <a class="list-group-item" href="/songs/{{ .Id }}">{{ .Title }}</a>
+          {{end}}
+        </div>
+      </div>
+
+      <div class="col-sm-6">
+        <h3>Comments</h3>
+      </div>
 
     </div>
-
     {{template "shared/footer" .}}
     {{template "shared/foot" }}
   </body>

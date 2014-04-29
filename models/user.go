@@ -73,7 +73,7 @@ func (u User) Featured() ([]User, error) {
 
 	rows, err := db.Query(`
     SELECT 
-      id, name, email, display_name, timestamp 
+      id, IF(display_name IS NOT NULL, display_name, name)
     FROM 
       Users 
     ORDER BY 
@@ -87,8 +87,7 @@ func (u User) Featured() ([]User, error) {
 
 	for rows.Next() {
 		var user User
-		err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.DisplayName,
-			&user.Timestamp)
+		err := rows.Scan(&user.Id, &user.Name)
 		if err != nil {
 			return users, err
 		}
@@ -111,7 +110,10 @@ func (u User) RetrieveByEmail(email string) (User, error) {
 
 func (u User) RetrieveById(id string) (User, error) {
 	var user User
-	row := db.QueryRow("SELECT * FROM Users WHERE id = ?", id)
+
+	query := `SELECT * FROM Users WHERE id = ?`
+
+	row := db.QueryRow(query, id)
 	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.DisplayName, &user.Timestamp, &user.Password)
 	return user, err
 }

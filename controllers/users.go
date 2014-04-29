@@ -139,8 +139,14 @@ func (u User) Retrieve() http.HandlerFunc {
 			// send error
 		}
 
+		songs, err := user.GetSongs()
+		if err != nil {
+			// send error
+		}
+
 		if err = t.ExecuteTemplate(w, "users/show", map[string]interface{}{
-			"User": user,
+			"User":  user,
+			"Songs": songs,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
