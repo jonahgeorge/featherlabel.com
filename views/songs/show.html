@@ -17,7 +17,9 @@
 
           <div class="col-sm-9">
             <h1>{{ .Song.Title }}</h1>
-            <h3>{{ .Song.User.Name }}</h3>
+            <a href="/users/{{ .Song.User.Id }}">
+              <h3>{{if .Song.User.Username}}{{.Song.User.Username}}{{else}}{{.Song.User.Name}}{{end}}</h3>
+            </a>
 
             <audio id="player" controls>
             <source src="{{.Song.SignedUrl}}" type="audio/mpeg">
