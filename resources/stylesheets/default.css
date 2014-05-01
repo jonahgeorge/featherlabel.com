@@ -1,3 +1,9 @@
+.featured h3 {
+  font-size:14px;
+  margin-top: 5px;
+  margin-bottom: 0px;
+}
+
 .trending h3 {
   font-size:14px;
   margin-top: 5px;
