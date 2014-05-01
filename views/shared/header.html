@@ -15,19 +15,21 @@
 
       <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
         <ul class="nav navbar-nav navbar-left">
-          <!--
-          <li><a href="/explore">Explore</a></li>
-          -->
-          {{if .Session}}
-          <li><a href="/upload">Upload</a></li>
+          <li><a href="/songs">Explore</a></li>
+		  {{if .Session.Values.User}}
+			<li><a href="/upload">Upload</a></li>
           {{end}}
         </ul>
 
-        <!--
-        <ul class="nav navbar-nav navbar-right">
-          <li><a href="/login">Login</a></li>
+		<ul class="nav navbar-nav navbar-right">
+		{{if .Session.Values.User}}
+		  <li><a href="/users/{{.Session.Values.User.Id}}"><i class="fa fa-user"></i> {{.Session.Values.User.Name}}</a></li>
+		  <!-- <li><a href="#"><i class="fa fa-cog"></i> Settings</a></li> -->
+		  <li><a href="/signout"><i class="fa fa-sign-out"></i> Sign Out</a></li>
+		{{else}}
+		  <li><a href="/signin"><i class="fa fa-sign-in"></i> Sign In</a></li>
+		{{end}}
         </ul>
-        -->
 
       </div>
     </div>

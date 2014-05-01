@@ -39,9 +39,6 @@ func main() {
 }
 
 func InitializeRouter(bucket *s3.Bucket, conf *yaml.Yaml) *mux.Router {
-	secret := []byte(to.String(conf.Get("server", "secret")))
-
-	// setup new router
 	router := mux.NewRouter()
 
 	// song routes
@@ -55,8 +52,12 @@ func InitializeRouter(bucket *s3.Bucket, conf *yaml.Yaml) *mux.Router {
 	router.HandleFunc("/users", controllers.User{}.Index()).Methods("GET")
 	router.HandleFunc("/users/{id:[0-9]+}", controllers.User{}.Retrieve()).Methods("GET")
 	router.HandleFunc("/users", controllers.User{}.Create()).Methods("POST")
-	router.HandleFunc("/authenticate", controllers.User{}.Authenticate()).Methods("POST")
-	router.HandleFunc("/credentials", controllers.User{}.Credentials(secret)).Methods("POST")
+
+	router.HandleFunc("/signin", controllers.Auth{}.Signin()).Methods("GET")
+	router.HandleFunc("/signin", controllers.Auth{}.Authenticate()).Methods("POST")
+	router.HandleFunc("/signout", controllers.Auth{}.Signout()).Methods("GET", "POST")
+	router.HandleFunc("/signup", controllers.Auth{}.Signup()).Methods("GET")
+	router.HandleFunc("/signup", controllers.User{}.Create()).Methods("POST")
 
 	// pages
 	router.HandleFunc("/about", controllers.Page{}.About()).Methods("GET")

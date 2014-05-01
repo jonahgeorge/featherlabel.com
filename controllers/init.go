@@ -1,12 +1,28 @@
 package controllers
 
-import "html/template"
+import (
+	"encoding/gob"
+	"html/template"
 
-var t *template.Template
+	"github.com/gorilla/sessions"
+	"github.com/jonahgeorge/featherlabel.com/models"
+)
+
+var (
+	t     *template.Template
+	store *sessions.CookieStore
+)
 
 func init() {
+	// compile templates
 	t = template.Must(t.ParseGlob("views/shared/*.html"))
 	t = template.Must(t.ParseGlob("views/users/*.html"))
 	t = template.Must(t.ParseGlob("views/songs/*.html"))
+	t = template.Must(t.ParseGlob("views/auth/*.html"))
 	t = template.Must(t.ParseGlob("views/*.html"))
+
+	// initialize session storage
+	store = sessions.NewCookieStore([]byte("octocat"))
+
+	gob.Register(&models.User{})
 }

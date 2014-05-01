@@ -1,0 +1,63 @@
+{{ define "auth/signin" }}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {{ template "shared/head" . }}
+  </head>
+  <body>
+    {{ template "shared/header" . }}
+
+	<div class="container">
+
+      <div class="col-sm-6 col-sm-offset-3">
+        <div class="page-header">
+          <h1>Sign In</h1>
+        </div>
+
+        <form role="form" id="signin">
+
+		  <div class="form-group">
+			<label>Email</label>
+            <input class="form-control" type='email' name="email" placeholder='Email' required>
+          </div>
+
+		  <div class="form-group">
+			<label>Password</label>	
+			<input class="form-control" type='password' name="password" placeholder='Password' required>
+          </div>
+
+          <div class="form-group">
+            <button class="btn btn-success pull-left" type="submit">Sign In</button>
+            <a class="breadcrumb pull-left" href="/" style="margin-left:5px">Cancel</a>
+            <a class="pull-right breadcrumb" href="/signup">Sign Up</a>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+
+	{{ template "shared/footer" . }}
+	<foot>
+	  {{ template "shared/foot" . }}
+	  <script type="text/javascript">
+		$(document).ready(function() {
+		  $("#signin").submit(function(e) {
+			e.preventDefault();
+			$.post("/signin", {
+			  email: $("input[name='email']").val(),
+			  password: $("input[name='password']").val()
+			}, function(data, textStatus, jqXHR) {
+			  if (data == 202) {
+				$(location).attr('href', '/');		  
+			  } else {
+				$(location).attr('href', '/signin');		  
+			  }
+			});
+		  });
+		});
+	  </script>
+	</foot>
+  </body>
+</html>
+{{ end }} 
