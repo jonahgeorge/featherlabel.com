@@ -61,6 +61,7 @@ func InitializeRouter(bucket *s3.Bucket, conf *yaml.Yaml) *mux.Router {
 
 	// pages
 	router.HandleFunc("/about", controllers.Page{}.About()).Methods("GET")
+	router.HandleFunc("/upload", controllers.Song{}.Form()).Methods("GET")
 	router.HandleFunc("/explore", controllers.Page{}.Explore()).Methods("GET")
 	router.HandleFunc("/", controllers.Page{}.Index()).Methods("GET")
 

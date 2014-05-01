@@ -6,9 +6,26 @@
   </head>
   <body>
     {{template "shared/header" .}}
-    <div class="container">
-      <h2>Songs Index</h2>
-    </div>
+	<div class="container">
+	  <div class="page-header">
+		<h1>Recent Songs</h1>
+	  </div>
+	  
+	  <table class="table table-striped">
+		<thead>
+		  <th>Title</th>
+		  <th>Artist</th>
+		</thead>
+		<tbody>
+		{{range .Songs}}
+		  <tr>
+			<td><a href="/songs/{{ .Id }}">{{ .Title }}</a></td>
+			<td><a href="/users/{{ .User.Id }}">{{if .User.Username}}{{.User.Username}}{{else}}{{ .User.Name }}{{end}}</a></td> 
+		  </tr>
+		{{end}}
+		</tbody>
+	  </table>
+	</div>
     {{template "shared/footer" .}}
     {{template "shared/foot" .}}
   </body>

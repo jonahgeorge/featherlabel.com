@@ -15,14 +15,9 @@ func (s Song) RetrieveAll() ([]Song, error) {
 	var songs []Song
 
 	rows, err := db.Query(`
-    SELECT 
-      Songs.id, Songs.title, Users.id, 
-      IF(Users.display_name, Users.display_name, Users.name)
-    FROM 
-      Songs 
-    LEFT JOIN 
-      Users ON Users.id = Songs.artist_id
-    `)
+    SELECT Songs.id, Songs.title, Users.id, Users.name, Users.display_name
+    FROM Songs
+    LEFT JOIN Users ON Users.id = Songs.artist_id`)
 
 	if err != nil {
 		return songs, err
@@ -30,7 +25,7 @@ func (s Song) RetrieveAll() ([]Song, error) {
 
 	for rows.Next() {
 		var song Song
-		err := rows.Scan(&song.Id, &song.Title, &song.User.Id, &song.User.Name)
+		err := rows.Scan(&song.Id, &song.Title, &song.User.Id, &song.User.Name, &song.User.Username)
 		if err != nil {
 			return songs, err
 		}
@@ -78,8 +73,8 @@ func (s Song) RetrieveById(id string) (Song, error) {
 
 	row := db.QueryRow(`
       SELECT 
-        Songs.id, Songs.title, Users.id, 
-        IF(Users.display_name, Users.display_name, Users.name)
+        Songs.id, Songs.title, Users.id,
+		Users.name, Users.display_name
       FROM 
         Songs 
       LEFT JOIN 
@@ -88,7 +83,7 @@ func (s Song) RetrieveById(id string) (Song, error) {
         Songs.id = ?
     `, id)
 
-	err := row.Scan(&song.Id, &song.Title, &song.User.Id, &song.User.Name)
+	err := row.Scan(&song.Id, &song.Title, &song.User.Id, &song.User.Name, &song.User.Username)
 	if err != nil {
 		return song, err
 	}
