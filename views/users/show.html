@@ -1,41 +1,91 @@
 {{define "users/show"}}
-<!DOCTYPE html>
-<html>
-  <head>
-    {{template "shared/head" .}}
-  </head>
-  <body>
-    {{template "shared/header" .}}
+{{template "_templates/header" .}}
 
-    <div class="container">
-      <div class="col-sm-12 row">
-        <div class="col-sm-3">
-          <img class="img-responsive featured-artist" 
-               src="https://identicons.github.com/{{.User.Id}}.png">
-        </div>
 
-        <div class="col-sm-9">
-          <h2>{{if .User.Username}}{{.User.Username}}{{else}}{{.User.Name}}{{end}}</h2>
-          <p>Biography</p>
-        </div>
-      </div>
+<div class="page-header">
+	<h1>{{.User.Username}}</h1>
+</div>
 
-      <div class="col-sm-6">
-        <h3>Songs</h3>
-        <div class="list-group">
-          {{range .Songs}}
-          <a class="list-group-item" href="/songs/{{ .Id }}">{{ .Title }}</a>
-          {{end}}
-        </div>
-      </div>
+<div class="col-sm-3">
 
-      <div class="col-sm-6">
-        <h3>Comments</h3>
-      </div>
+	<img class="img-responsive featured-artist" src="https://identicons.github.com/{{.User.Id}}.png">
 
-    </div>
-    {{template "shared/footer" .}}
-    {{template "shared/foot" }}
-  </body>
-</html>
+	<br/>
+
+	<ul class="nav nav-pills nav-stacked" id="myTab">
+		<li class="active"><a href="#overview" data-toggle="tab">Overview</a></li>
+		<li><a href="#discography" data-toggle="tab">Discography <span class="badge pull-right">{{len .Songs}}</span></a></li>
+		<li><a href="#feedback" data-toggle="tab">Feedback</a></li>
+		<!--
+		<li><a href="#settings" data-toggle="tab">Settings</a></li>
+		-->
+	</ul>
+</div>
+
+<div class="col-sm-9">
+	<div class="tab-content">
+		<div class="tab-pane active" id="overview">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">About</h3>
+				</div>
+				<ul class="list-group">
+					<li class="list-group-item">
+					<div class="left">Biography</div>
+					<div class="right">{{.Biography}}</div>
+					</li>
+				</ul>
+			</div>
+
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">Support</h3>
+				</div>
+				<ul class="list-group">
+					<li class="list-group-item">
+					<div class="left">Feathercoin Address</div>
+					<div class="right">{{.Addresss}}</div>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+		<div class="tab-pane" id="discography">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">Discography</h3>
+				</div>
+				<div class="panel-body">
+					<div class="list-group">
+						{{range .Songs}}
+						<a class="list-group-item" href="/songs/{{ .Id }}">{{ .Title }}</a>
+						{{end}}
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="tab-pane" id="feedback">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">Comments</h3>
+				</div>
+				<div class="panel-body">
+					{{if index .Session.Values "Id" }}
+					<form action="/articles/{{.Article.Id}}/comments" method="post">
+						<textarea class="form-control commentbox" name="body"></textarea>
+						<button type="submit" class="btn btn-default">Post</button>
+						<button type="reset" class="btn btn-default">Reset</button>
+					</form>
+					{{else}}
+					<span><a href="/signin">Login</a> to join the discussion</span>
+					{{end}}
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+{{template "_templates/footer" .}}
 {{end}}

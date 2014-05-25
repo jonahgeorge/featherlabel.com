@@ -1,45 +1,25 @@
 {{define "about"}}
-<!DOCTYPE html>
-<html>
-  <head>
-    {{template "shared/head" .}}
-  </head>
-  <body>
-    {{template "shared/header" .}}
+{{template "_templates/header" .}}
 
-    <div class="container">
-      <h3>Our Mission</h3>
-      <p>
-        We strive to provide an inviting platform for emerging artists to establish their initial community on. 
-        By encouraging micro-donations on a per-artist basis, we hope to build a sort of crowdfunding platform that
-        will allow artists to get the funding they need to succeed.
-      </p>   
-      <p>
-        By working to keep operational costs to the bare minimum, we can ensure that the maixmum proceeds can go to our community. 
-      </p>
-      <p> 
-        If, ever, you have an issue with the way we are operating this service, please reach out. 
-        This service is provided for the comunity (Feathercoin and beyond) to support new artists 
-        as they explore their creative ability.
-      </p>
+<h3>Our Mission</h3>
+<p>We strive to provide an inviting platform for emerging artists to establish their initial community on. By encouraging micro-donations on a per-artist basis, we hope to build a sort of crowdfunding platform that will allow artists to get the funding they need to succeed.</p>   
+<p>By working to keep operational costs to the bare minimum, we can ensure that the maixmum proceeds can go to our community.</p>
+<p> If, ever, you have an issue with the way we are operating this service, please reach out. This service is provided for the comunity (Feathercoin and beyond) to support new artists as they explore their creative ability.</p>
 
-      <h3>Road Map</h3>
-      <ul>
-        <li><strike>Create and Upload songs using API</strike></li>
-        <li><strike>Serve songs from S3</strike></li>
-        <li>User Creation and Authentication using Web interface</li>
-        <li>Song Creation and Deletion using Web interface</li>
-        <li>Song Updating</li>
-        <li>Play Count Implementation</li>
-        <li>Integrate Feathercoind Payment System</li>
-        <li>Interface overhaul</li>
-      </ul>
+<h3>Road Map</h3>
+<ul>
+	<li><strike>Create and Upload songs using API</strike></li>
+	<li><strike>Serve songs from S3</strike></li>
+	<li>User Creation and Authentication using Web interface</li>
+	<li>Song Creation and Deletion using Web interface</li>
+	<li>Song Updating</li>
+	<li>Play Count Implementation</li>
+	<li>Integrate Feathercoind Payment System</li>
+	<li>Interface overhaul</li>
+</ul>
 
-      <h3>Our Team</h3>
-      <p>Feather Label is the brain child of <a href="https://twitter.com/NotThatKHart">Kevin Hart</a> and is being made a reality by <a href="https://twitter.com/jonahgeorge">Jonah George</a>.</p>
+<h3>Our Team</h3>
+<p>Feather Label is the brain child of <a target="_blank" href="https://twitter.com/NotThatKHart">Kevin Hart</a> and is being made a reality by <a href="https://twitter.com/jonahgeorge" target="_blank">Jonah George</a>.</p>
 
-    </div>
-    {{template "shared/footer" .}}
-  </body>
-</html>
+{{template "_templates/footer" .}}
 {{end}}

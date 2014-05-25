@@ -1,55 +1,49 @@
 {{define "index"}}
-<!DOCTYPE html>
-<html>
-  <head>
-    {{template "shared/head" .}}
-  </head>
-  <body>
-    {{template "shared/header" .}}
+{{template "_templates/header" .}}
 
-    <div class="container">
+<div class="alert alert-danger alert-dismissable">
+	<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+	<strong>Warning!</strong> This site is still under construction. Things will break. 
+</div>
 
-	  <div class="alert alert-danger alert-dismissable">
-		<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-		<strong>Warning!</strong> This site is still under construction. Do not be suprised if things break. 
-	  </div>
+{{if .Session.Values.Success}}
+<div class="alert alert-success">
+	{{.Session.Values.Success}}
+</div>
+{{end}}
 
-      <h3>Featured Users</h3>
-      <div class="row">
-        {{range .Users}}
-        <div class="col-xs-6 col-md-3">
-          <div class="thumbnail featured">
-            <a href="/users/{{.Id}}">
-              <img class="img-responsive featured-artist" src="https://identicons.github.com/{{.Id}}.png">
-              <div class="caption">
-                <h3 align="center">{{if .Username}}{{.Username}}{{else}}{{.Name}}{{end}}</h3>
-              </div>
-            </a>
-          </div>
-        </div>
-        {{end}}
-      </div>
+<h3>Featured Users</h3>
+<div class="row">
+	{{range .Users}}
+	<div class="col-xs-6 col-md-3">
+		<div class="thumbnail featured">
+			<a href="/users/{{.Id}}">
+				<img class="img-responsive featured-artist" src="https://identicons.github.com/{{.Id}}.png">
+				<div class="caption">
+					<h3 align="center">{{.Username}}</h3>
+				</div>
+			</a>
+		</div>
+	</div>
+	{{end}}
+</div>
 
-      <h3>Trending Songs</h3>
-      <div class="row">
-        {{range .Songs}}
-          <div class="col-xs-6 col-md-2">
-            <div class="thumbnail trending">
-              <a href="/songs/{{.Id}}">
-                <img class="img-responsive" src="https://identicons.github.com/{{.Id}}.png">
-                <div class="caption">
-                  <h3 align="center">{{.Title}}</h3>
-                  <p align="center">{{if .User.Username}}{{.User.Username}}{{else}}{{.User.Name}}{{end}}</p>
-                </div>
-              </a>
-            </div>
-          </div>
-        {{end}}
-      </div>
+<h3>Trending Songs</h3>
+<div class="row">
+	{{range .Songs}}
+	<div class="col-xs-6 col-md-2">
+		<div class="thumbnail trending">
+			<a href="/songs/{{.Id}}">
+				<img class="img-responsive" src="https://identicons.github.com/{{.Id}}.png">
+				<div class="caption">
+					<h3 align="center">{{.Title}}</h3>
+					<p align="center">{{.User.Username}}</p>
+				</div>
+			</a>
+		</div>
+	</div>
+	{{end}}
+</div>
 
-    </div>
-    {{template "shared/footer" .}}
-    {{template "shared/foot" .}}
-  </body>
-</html>
+{{template "_templates/footer" .}}
 {{end}}

@@ -1,37 +1,24 @@
 {{define "songs/show"}}
-<!DOCTYPE html>
-<html>
-  <head>
-    {{template "shared/head" .}}
-  </head>
-  <body>
-    {{template "shared/header" .}}
+{{template "_templates/header" .}}
 
-    <div class="container">
+<div class="col-sm-12">
+	<div class="row">
+		<div class="col-sm-3">
+			<img class="img-responsive featured-artist" src="https://identicons.github.com/{{.Song.Id}}.png">
+		</div>
 
-      <div class="col-sm-12">
-        <div class="row">
-          <div class="col-sm-3">
-            <img class="img-responsive featured-artist" src="https://identicons.github.com/{{.Song.Id}}.png">
-          </div>
+		<div class="col-sm-9">
+			<h1>{{ .Song.Title }}</h1>
+			<a href="/users/{{ .Song.User.Id }}">
+				<h3>{{.Song.User.Username}}</h3>
+			</a>
 
-          <div class="col-sm-9">
-            <h1>{{ .Song.Title }}</h1>
-            <a href="/users/{{ .Song.User.Id }}">
-              <h3>{{if .Song.User.Username}}{{.Song.User.Username}}{{else}}{{.Song.User.Name}}{{end}}</h3>
-            </a>
+			<audio id="player" controls>
+			<source src="{{.Song.SignedUrl}}" type="audio/mpeg">
+			</audio>
+		</div>
+	</div>
+</div>
 
-            <audio id="player" controls>
-            <source src="{{.Song.SignedUrl}}" type="audio/mpeg">
-            </audio>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    {{template "shared/footer" .}}
-    {{template "shared/foot" .}}
-  </body>
-</html>
+{{template "_templates/footer" .}}
 {{end}}

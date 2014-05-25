@@ -6,11 +6,11 @@ import (
 	"net/http"
 
 	_ "github.com/Go-SQL-Driver/MySQL"
+	. "github.com/jonahgeorge/featherlabel.com/controllers"
 
 	"github.com/gorilla/mux"
 	"github.com/gosexy/to"
 	"github.com/gosexy/yaml"
-	"github.com/jonahgeorge/featherlabel.com/controllers"
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/s3"
 )
@@ -33,6 +33,8 @@ func main() {
 
 	// grab port from config and serve
 	port := fmt.Sprintf(":%s", to.String(conf.Get("server", "port")))
+	log.Printf("<== Listening on port %s\n", port)
+
 	if err = http.ListenAndServe(port, nil); err != nil {
 		log.Fatal(err)
 	}
@@ -41,34 +43,31 @@ func main() {
 func InitializeRouter(bucket *s3.Bucket, conf *yaml.Yaml) *mux.Router {
 	router := mux.NewRouter()
 
-	// song routes
-	router.HandleFunc("/songs", controllers.Song{}.Index()).Methods("GET")
-	router.HandleFunc("/songs", controllers.Song{}.Create(bucket)).Methods("POST")
-	router.HandleFunc("/songs/{id:[0-9]+}", controllers.Song{}.Retrieve(bucket)).Methods("GET")
-	router.HandleFunc("/songs/{id:[0-9]+}", controllers.Song{}.Update(bucket)).Methods("PUT")
-	router.HandleFunc("/songs/{id:[0-9]+}", controllers.Song{}.Delete(bucket)).Methods("DELETE")
+	router.HandleFunc("/songs", SongController{}.Index()).Methods("GET")
+	router.HandleFunc("/songs", SongController{}.Create(bucket)).Methods("POST")
+	router.HandleFunc("/songs/{id:[0-9]+}", SongController{}.Retrieve(bucket)).Methods("GET")
+	router.HandleFunc("/songs/{id:[0-9]+}/update", SongController{}.Update(bucket)).Methods("POST")
+	router.HandleFunc("/songs/{id:[0-9]+}/delete", SongController{}.Delete(bucket)).Methods("POST")
+	router.HandleFunc("/upload", SongController{}.Form()).Methods("GET")
 
-	// user routes
-	router.HandleFunc("/users", controllers.User{}.Index()).Methods("GET")
-	router.HandleFunc("/users/{id:[0-9]+}", controllers.User{}.Retrieve()).Methods("GET")
-	router.HandleFunc("/users", controllers.User{}.Create()).Methods("POST")
+	router.HandleFunc("/users", UserController{}.Index()).Methods("GET")
+	router.HandleFunc("/users/{id:[0-9]+}", UserController{}.Retrieve()).Methods("GET")
+	router.HandleFunc("/users", UserController{}.Create()).Methods("POST")
 
-	router.HandleFunc("/signin", controllers.Auth{}.Signin()).Methods("GET")
-	router.HandleFunc("/signin", controllers.Auth{}.Authenticate()).Methods("POST")
-	router.HandleFunc("/signout", controllers.Auth{}.Signout()).Methods("GET", "POST")
-	router.HandleFunc("/signup", controllers.Auth{}.Signup()).Methods("GET")
-	router.HandleFunc("/signup", controllers.User{}.Create()).Methods("POST")
+	router.HandleFunc("/signin", AuthenticationController{}.RenderSignInForm()).Methods("GET")
+	router.HandleFunc("/signin", AuthenticationController{}.Authenticate()).Methods("POST")
+	router.HandleFunc("/signout", AuthenticationController{}.Signout()).Methods("GET")
+	router.HandleFunc("/signup", AuthenticationController{}.RenderSignUpForm()).Methods("GET")
+	router.HandleFunc("/signup", AuthenticationController{}.Create()).Methods("POST")
 
-	// pages
-	router.HandleFunc("/about", controllers.Page{}.About()).Methods("GET")
-	router.HandleFunc("/upload", controllers.Song{}.Form()).Methods("GET")
-	router.HandleFunc("/explore", controllers.Page{}.Explore()).Methods("GET")
-	router.HandleFunc("/", controllers.Page{}.Index()).Methods("GET")
+	router.HandleFunc("/about", MainController{}.About()).Methods("GET")
+	router.HandleFunc("/explore", MainController{}.Explore()).Methods("GET")
+	router.HandleFunc("/", MainController{}.Index()).Methods("GET")
 
-	// resource files
 	http.Handle("/resources/", http.StripPrefix("/resources/", http.FileServer(http.Dir("resources"))))
 	http.Handle("/vendor/", http.StripPrefix("/vendor/", http.FileServer(http.Dir("vendor"))))
 
+	log.Printf("<== Router initialized\n")
 	return router
 }
 
@@ -87,5 +86,6 @@ func InitializeAWS(conf *yaml.Yaml) *s3.Bucket {
 	// [todo] - load region from config file
 	client := s3.New(auth, aws.USWest2)
 
+	log.Printf("<== AWS Configured\n")
 	return client.Bucket(bucket)
 }

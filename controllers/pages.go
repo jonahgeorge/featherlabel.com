@@ -1,52 +1,51 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 
-	"github.com/jonahgeorge/featherlabel.com/models"
+	. "github.com/jonahgeorge/featherlabel.com/models"
 )
 
-type Page struct{}
+type MainController struct {
+}
 
-func (p Page) Index() http.HandlerFunc {
+func (m MainController) Index() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// init session
-		session, _ := store.Get(r, "user")
+		session, err := store.Get(r, "user")
+		songs, err := SongFactory{}.GetSongsTrending()
+		users := UserFactory{}.GetUsersFeatured()
 
-		// Retrieve featured songs
-		songs, err := models.Song{}.RetrieveAll()
+		// catch retrieval errors
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
-		// Retrieve featured users
-		users, err := models.User{}.Featured()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-
-		if err := t.ExecuteTemplate(w, "index", map[string]interface{}{
+		err = t.ExecuteTemplate(w, "index", map[string]interface{}{
 			"Songs":   songs,
 			"Users":   users,
 			"Session": session,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		})
 
+		// catch render errors
+		if err != nil {
+			log.Println(err)
 		}
 	}
 }
 
-func (p Page) Explore() http.HandlerFunc {
+func (m MainController) Explore() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// init session
-		session, _ := store.Get(r, "user")
+		session, err := store.Get(r, "user")
+		songs, err := SongFactory{}.GetSongs()
 
-		// Retrieve all songs
-		songs, err := models.Song{}.RetrieveAll()
+		// catch retrieval errors
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		err = t.ExecuteTemplate(w, "index", map[string]interface{}{
@@ -55,26 +54,26 @@ func (p Page) Explore() http.HandlerFunc {
 			"Session": session,
 		})
 
+		// catch render errors
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Println(err)
 		}
-
 	}
 }
 
-func (p Page) About() http.HandlerFunc {
+func (m MainController) About() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// init session
-		session, _ := store.Get(r, "user")
+		session, err := store.Get(r, "user")
 
-		err := t.ExecuteTemplate(w, "about", map[string]interface{}{
+		err = t.ExecuteTemplate(w, "about", map[string]interface{}{
 			"Title":   "About",
 			"Session": session,
 		})
 
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Println(err)
 		}
+
 	}
 }

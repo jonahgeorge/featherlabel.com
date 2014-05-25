@@ -1,0 +1,69 @@
+{{define "_templates/header"}}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		{{ if .Title }} 
+		<title>{{ .Title }} | Feather Label</title>
+		{{ else }}
+		<title>Feather Label</title>
+		{{ end }}
+
+		<!-- meta -->
+		<meta content="utf-8" http-equiv="encoding">
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui" >
+		<meta name="description" content="A music-discovery platform for the little guys." >
+
+		<!-- favicon -->
+		<link rel="icon" type="image/x-icon" href="/resources/images/favicon.ico">
+
+		<!-- stylesheets -->
+		<link href="/vendor/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+		<link href="/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+		<link href="/resources/stylesheets/default.css" rel="stylesheet">
+	</head>
+
+	<body>
+		<header>
+		<nav class="navbar navbar-square navbar-default" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a href="/" class="navbar-brand">Feather Label <span class="label label-danger">alpha</span></a>
+			</div>
+
+			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+				<ul class="nav navbar-nav navbar-left">
+					<li><a href="/songs">Explore</a></li>
+					{{if .Session.Values.User}}
+					<li><a href="/upload">Upload</a></li>
+					{{end}}
+				</ul>
+
+				<ul class="nav navbar-nav navbar-right">
+					{{if .Session.Values.User}}
+					<li><a href="/users/{{.Session.Values.User.Id}}"><i class="fa fa-user"></i> {{.Session.Values.User.Username}}</a></li>
+					<!-- <li><a href="#"><i class="fa fa-cog"></i> Settings</a></li> -->
+					<li><a href="/signout" data-no-instant><i class="fa fa-sign-out"></i> Sign Out</a></li>
+					{{else}}
+					<li><a href="/signin"><i class="fa fa-sign-in"></i> Sign In</a></li>
+					{{end}}
+				</ul>
+
+			</div>
+		</div>
+		</nav>
+		</header>
+
+		<div class="container">
+
+		{{if .Flash.Success}}<div class="alert alert-success">{{.Flash.Success}}</div>{{end}}
+		{{if .Flash.Error}}<div class="alert alert-error">{{.Flash.Error}}</div>{{end}}
+		{{if .Flash.Warning}}<div class="alert alert-warning">{{.Flash.Warning}}</div>{{end}}
+
+{{end}}

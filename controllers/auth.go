@@ -1,90 +1,136 @@
 package controllers
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/sessions"
-	"github.com/jonahgeorge/featherlabel.com/models"
+	. "github.com/jonahgeorge/featherlabel.com/models"
 
 	"code.google.com/p/go.crypto/bcrypt"
 )
 
-type Auth struct{}
+type AuthenticationController struct{}
 
-func (a Auth) Signin() http.HandlerFunc {
+// [GET /signin] - Render user sign in form
+func (a AuthenticationController) RenderSignInForm() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := t.ExecuteTemplate(w, "auth/signin", map[string]interface{}{
-			"Title": "Sign In",
+		// retrieve session
+		session, err := store.Get(r, "user")
+
+		// render template
+		err = t.ExecuteTemplate(w, "auth/signin", map[string]interface{}{
+			"Title":   "Sign In",
+			"Session": session,
 		})
+
+		// catch template rendering errors
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Println(err)
 		}
 	}
 }
 
-// Process user login
-func (a Auth) Authenticate() http.HandlerFunc {
+// process user login
+func (a AuthenticationController) Authenticate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// retrieve form values
-		email := r.FormValue("email")
-		password := r.FormValue("password")
+		// retrieve session
+		session, _ := store.Get(r, "user")
 
 		// retrieve user by email
-		user, err := models.User{}.RetrieveByEmail(email)
-		if err != nil {
-			fmt.Fprint(w, http.StatusNotAcceptable)
+		user := UserFactory{}.GetUserByEmail(r.FormValue("email"))
+
+		// if no user is found
+		if user.Email == nil {
+			session.Values["Error"] = "No user with that email was found."
+			session.Save(r, w)
+			http.Redirect(w, r, "/signin", http.StatusFound)
 			return
 		}
 
 		// compare saved password and submitted password
-		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+		err := bcrypt.CompareHashAndPassword(
+			[]byte(*user.Password), []byte(r.FormValue("password")))
+
+		// if passwords do not match
 		if err != nil {
-			fmt.Fprint(w, http.StatusUnauthorized)
+			session.Values["Error"] = "Invalid password."
+			session.Save(r, w)
+			http.Redirect(w, r, "/signin", http.StatusFound)
 			return
 		}
+
+		// set sesion vars
+		session.Values["User"] = &user
+		session.Values["Success"] = "Welcome back, " + *user.Username
+		session.Save(r, w)
+
+		// redirect to homepage
+		http.Redirect(w, r, "/", http.StatusFound)
+	}
+}
+
+func (a AuthenticationController) Signout() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session, _ := store.Get(r, "user")
+		// Kill session
+		session.Options.MaxAge = -1
+		sessions.Save(r, w)
+
+		http.Redirect(w, r, "/", http.StatusFound)
+	}
+}
+
+func (a AuthenticationController) RenderSignUpForm() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session, _ := store.Get(r, "user")
+
+		t.ExecuteTemplate(w, "auth/signup",
+			map[string]interface{}{
+				"Title":   "Sign Up",
+				"Session": session,
+			})
+	}
+}
+
+func (a AuthenticationController) Create() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 
 		// init session
 		session, _ := store.Get(r, "user")
 
-		// set sesion vars
-		session.Values["User"] = &user
-		/*
-			session.Values["Id"] = user.Id
-			session.Values["Email"] = user.Email
-			session.Values["Name"] = user.Name
-		*/
+		// [todo] - Check if user exists
+		user := UserFactory{}.GetUserByEmail(r.FormValue("email"))
+		if user.Email != nil {
 
-		// save session
-		session.Save(r, w)
+			// Set error message
+			session.Values["Flash"] = "A user with that email already exists, please use another."
+			session.Save(r, w)
 
-		// return 202
-		fmt.Fprint(w, http.StatusAccepted)
-	}
-}
-
-func (a Auth) Signout() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		session, _ := store.Get(r, "user")
-		session.Options.MaxAge = -1
-		sessions.Save(r, w)
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-	}
-}
-
-func (a Auth) Signup() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.ExecuteTemplate(w, "auth/signup", map[string]interface{}{
-			"Title": "Sign Up",
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Redirect(w, r, "/signup", http.StatusFound)
+			return
 		}
-	}
-}
 
-func (a Auth) Create() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+		// Create hashed password
+		hashed_password, err := bcrypt.GenerateFromPassword(
+			[]byte(r.FormValue("password")), 9)
 
+		if err != nil {
+			log.Println(err)
+		}
+
+		// Insert user into database
+		_, err = UserFactory{}.Create(map[string]interface{}{
+			"username": r.FormValue("username"),
+			"email":    r.FormValue("email"),
+			"password": hashed_password,
+		})
+
+		if err != nil {
+			log.Println(err)
+		}
+
+		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }
