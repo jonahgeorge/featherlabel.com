@@ -2,19 +2,25 @@ package models
 
 import "log"
 
-type SongFactory struct {
+type SongModel struct {
+	Id        *int
+	Title     *string
+	User      UserModel
+	SignedUrl *string
+}
+
+// Delete the given song
+func (s SongModel) Delete() error {
+	return nil
 }
 
 // Retrieve all songs
-func (s SongFactory) GetSongs() ([]*SongModel, error) {
+func GetSongs() ([]*SongModel, error) {
 
 	sql := `
-	SELECT 
-		Songs.id, Songs.title, Users.id, Users.username
-    FROM 
-		Songs
-    LEFT JOIN 
-		Users ON Users.id = Songs.artist_id`
+		SELECT Songs.id, Songs.title, Users.id, Users.username
+	    FROM Songs
+	    LEFT JOIN Users ON Users.id = Songs.artist_id`
 
 	rows, err := db.Query(sql)
 	if err != nil {
@@ -39,16 +45,13 @@ func (s SongFactory) GetSongs() ([]*SongModel, error) {
 }
 
 // Retrieve all songs
-func (s SongFactory) GetSongsTrending() ([]*SongModel, error) {
+func GetSongsTrending() ([]*SongModel, error) {
 
 	sql := `
-	SELECT 
-		Songs.id, Songs.title, Users.id, Users.username
-    FROM 
-		Songs
-    LEFT JOIN 
-		Users ON Users.id = Songs.artist_id
-	LIMIT 20`
+		SELECT Songs.id, Songs.title, Users.id, Users.username
+	    FROM Songs
+	    LEFT JOIN Users ON Users.id = Songs.artist_id
+		LIMIT 20`
 
 	rows, err := db.Query(sql)
 	if err != nil {
@@ -73,17 +76,13 @@ func (s SongFactory) GetSongsTrending() ([]*SongModel, error) {
 }
 
 // Retrieve a single song by its id (primary key)
-func (s SongFactory) GetSongById(id string) (*SongModel, error) {
+func GetSongById(id string) (*SongModel, error) {
 
 	sql := `
-	SELECT 
-		Songs.id, Songs.title, Users.id, Users.username
-	FROM 
-		Songs 
-	LEFT JOIN 
-		Users ON Users.id = Songs.artist_id 
-	WHERE 
-		Songs.id = ?`
+		SELECT Songs.id, Songs.title, Users.id, Users.username
+		FROM Songs 
+		LEFT JOIN Users ON Users.id = Songs.artist_id 
+		WHERE Songs.id = ?`
 
 	row := db.QueryRow(sql, id)
 	song := new(SongModel)
@@ -93,20 +92,24 @@ func (s SongFactory) GetSongById(id string) (*SongModel, error) {
 }
 
 // Retrieve a slice of songs by fuzzy matching name
-func (s SongFactory) GetSongsByName() ([]*SongModel, error) {
+func GetSongsByName() ([]*SongModel, error) {
 	var songs []*SongModel
 	return songs, nil
 }
 
 // Retrieve a slice of songs by matching the tag
-func (s SongFactory) GetSongsByGenre() ([]*SongModel, error) {
+func GetSongsByGenre() ([]*SongModel, error) {
 	var songs []*SongModel
 	return songs, nil
 }
 
 // Insert a song record into db
-func (s SongFactory) Create(data map[string]interface{}) (int64, error) {
-	sql := `INSERT INTO Songs (title, artist_id) VALUES (?, ?)`
+func Create(data map[string]interface{}) (int64, error) {
+
+	sql := `
+		INSERT INTO Songs (title, artist_id) 
+		VALUES (?, ?)`
+
 	result, err := db.Exec(sql, data["title"], data["artist_id"])
 	id, err := result.LastInsertId()
 	return id, err

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	. "github.com/jonahgeorge/featherlabel.com/models"
+	"github.com/jonahgeorge/featherlabel.com/models"
 	"github.com/mitchellh/goamz/s3"
 )
 
@@ -18,19 +18,20 @@ type SongController struct{}
 func (s SongController) Index() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// init session
+		// retrieve user session
 		session, err := store.Get(r, "user")
 
-		// Retrieve all songs
-		songs, err := SongFactory{}.GetSongs()
+		// retrieve all songs
+		songs, err := models.SongFactory{}.GetSongs()
 
-		// Render songs template
+		// render songs index template
 		err = t.ExecuteTemplate(w, "songs/index", map[string]interface{}{
 			"Title":   "Songs",
 			"Songs":   songs,
 			"Session": session,
 		})
 
+		// catch template rendering errors
 		if err != nil {
 			log.Println(err)
 		}
@@ -38,15 +39,16 @@ func (s SongController) Index() http.HandlerFunc {
 }
 
 // Create a song, add details into db and upload file to aws
-func (s SongController) Create(bucket *s3.Bucket) http.HandlerFunc {
+func (s SongController) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// retrieve session
+		// retrieve user session
 		session, err := store.Get(r, "user")
-		user := session.Values["User"].(*UserModel)
+		user := session.Values["User"].(*models.UserModel)
 
+		// check if user agreed to terms and copyright
 		if r.FormValue("copyright") != "on" || r.FormValue("terms") != "on" {
-			// redirect to /upload
+			// redirect to upload page
 			http.Redirect(w, r, "/upload", http.StatusFound)
 			return
 		}
@@ -55,6 +57,8 @@ func (s SongController) Create(bucket *s3.Bucket) http.HandlerFunc {
 		file, _, err := r.FormFile("file")
 		if err != nil {
 			log.Println(err)
+
+			// redirect to upload page
 			http.Redirect(w, r, "/upload", http.StatusFound)
 			return
 		}
@@ -63,18 +67,22 @@ func (s SongController) Create(bucket *s3.Bucket) http.HandlerFunc {
 		data, err := ioutil.ReadAll(file)
 		if err != nil {
 			log.Println(err)
+
+			// redirect to upload page
 			http.Redirect(w, r, "/upload", http.StatusFound)
 			return
 		}
 
 		// insert song data into database
-		id, err := SongFactory{}.Create(map[string]interface{}{
+		id, err := models.SongFactory{}.Create(map[string]interface{}{
 			"title":     r.FormValue("title"),
 			"artist_id": user.Id,
 		})
 
 		if err != nil {
 			log.Println(err)
+
+			// redirect to upload page
 			http.Redirect(w, r, "/upload", http.StatusFound)
 			return
 		}
@@ -97,18 +105,26 @@ func (s SongController) Create(bucket *s3.Bucket) http.HandlerFunc {
 }
 
 // Retrieve a song, details from db and authenticate url with goamz
-func (s SongController) Retrieve(bucket *s3.Bucket) http.HandlerFunc {
+func (s SongController) Retrieve() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		session, err := store.Get(r, "user")
+		// retrieve user session
+		session, _ := store.Get(r, "user")
 
-		// get url params
+		// get url parameters
 		params := mux.Vars(r)
 
 		// retrieve song by id
-		song, err := SongFactory{}.GetSongById(params["id"])
+		song, err := models.SongFactory{}.GetSongById(params["id"])
+
+		// song retrieval error
 		if err != nil {
 			log.Println(err)
+
+			session.AddFlash("There was an error retrieving that song.")
+			session.Save(r, w)
+
+			// redirect to songs index page
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -119,13 +135,14 @@ func (s SongController) Retrieve(bucket *s3.Bucket) http.HandlerFunc {
 
 		song.SignedUrl = &uri
 
-		// Render songs template
+		// render songs template
 		err = t.ExecuteTemplate(w, "songs/show", map[string]interface{}{
 			"Title":   song.Title,
 			"Song":    song,
 			"Session": session,
 		})
 
+		// catch template rendering errors
 		if err != nil {
 			log.Println(err)
 		}
@@ -134,14 +151,14 @@ func (s SongController) Retrieve(bucket *s3.Bucket) http.HandlerFunc {
 }
 
 // Update a song, details to db overwrite aws key if new file
-func (s SongController) Update(bucket *s3.Bucket) http.HandlerFunc {
+func (s SongController) Update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
 
 // Delete a song, remove details from db and delete key from aws
-func (s SongController) Delete(bucket *s3.Bucket) http.HandlerFunc {
+func (s SongController) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 	}
@@ -150,13 +167,16 @@ func (s SongController) Delete(bucket *s3.Bucket) http.HandlerFunc {
 func (s SongController) Form() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		session, err := store.Get(r, "user")
+		// retrieve user session
+		session, _ := store.Get(r, "user")
 
-		err = t.ExecuteTemplate(w, "songs/form", map[string]interface{}{
+		// rendering song upload form
+		err := t.ExecuteTemplate(w, "songs/form", map[string]interface{}{
 			"Title":   "Upload",
 			"Session": session,
 		})
 
+		// catch template rendering errors
 		if err != nil {
 			log.Println(err)
 		}

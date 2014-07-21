@@ -5,43 +5,46 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	. "github.com/jonahgeorge/featherlabel.com/models"
+	"github.com/jonahgeorge/featherlabel.com/models"
 )
 
 type UserController struct{}
 
+// Render a list of all users. To be used as a user search/browse page
 func (u UserController) Index() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// init session
+		// retrieve user session
 		session, _ := store.Get(r, "user")
 
-		// Retrieve all users
-		users := UserFactory{}.GetUsers()
+		// retrieve all users
+		users := models.UserFactory{}.GetUsers()
 
-		// Render users/index template
+		// render users/index template
 		err := t.ExecuteTemplate(w, "users/index", map[string]interface{}{
 			"title":   "Users",
-			"songs":   users,
+			"Users":   users,
 			"Session": session,
 		})
-
+		
+		// catch template rendering errors
 		if err != nil {
 			log.Println(err)
 		}
 	}
 }
 
+// Render an individual user page
 func (u UserController) Retrieve() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// init session
+		// retrieve user session
 		session, _ := store.Get(r, "user")
 
-		// get url params
+		// get url parameters
 		params := mux.Vars(r)
 
-		user := UserFactory{}.GetUserById(params["id"])
+		user := models.UserFactory{}.GetUserById(params["id"])
 		songs := user.GetSongs()
 
 		// render template
@@ -51,6 +54,7 @@ func (u UserController) Retrieve() http.HandlerFunc {
 			"Session": session,
 		})
 
+		// catch template rendering errors
 		if err != nil {
 			log.Println(err)
 		}

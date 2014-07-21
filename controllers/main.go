@@ -4,18 +4,19 @@ import (
 	"log"
 	"net/http"
 
-	. "github.com/jonahgeorge/featherlabel.com/models"
+	"github.com/jonahgeorge/featherlabel.com/models"
 )
 
-type MainController struct {
-}
+type MainController struct{}
 
 func (m MainController) Index() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		// retrieve user session
 		session, err := store.Get(r, "user")
-		songs, err := SongFactory{}.GetSongsTrending()
-		users := UserFactory{}.GetUsersFeatured()
+
+		songs, err := models.SongFactory{}.GetSongsTrending()
+		users := models.UserFactory{}.GetUsersFeatured()
 
 		// catch retrieval errors
 		if err != nil {
@@ -23,13 +24,14 @@ func (m MainController) Index() http.HandlerFunc {
 			return
 		}
 
+		// render home page template
 		err = t.ExecuteTemplate(w, "index", map[string]interface{}{
 			"Songs":   songs,
 			"Users":   users,
 			"Session": session,
 		})
 
-		// catch render errors
+		// catch template rendering errors
 		if err != nil {
 			log.Println(err)
 		}
@@ -39,8 +41,10 @@ func (m MainController) Index() http.HandlerFunc {
 func (m MainController) Explore() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		// retrieve user session
 		session, err := store.Get(r, "user")
-		songs, err := SongFactory{}.GetSongs()
+
+		songs, err := models.SongFactory{}.GetSongs()
 
 		// catch retrieval errors
 		if err != nil {
@@ -54,7 +58,7 @@ func (m MainController) Explore() http.HandlerFunc {
 			"Session": session,
 		})
 
-		// catch render errors
+		// catch template rendering errors
 		if err != nil {
 			log.Println(err)
 		}
@@ -64,16 +68,18 @@ func (m MainController) Explore() http.HandlerFunc {
 func (m MainController) About() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		session, err := store.Get(r, "user")
+		// retrieve user session
+		session, _ := store.Get(r, "user")
 
-		err = t.ExecuteTemplate(w, "about", map[string]interface{}{
+		// render about page template
+		err := t.ExecuteTemplate(w, "about", map[string]interface{}{
 			"Title":   "About",
 			"Session": session,
 		})
 
+		// catch template rendering errors
 		if err != nil {
 			log.Println(err)
 		}
-
 	}
 }

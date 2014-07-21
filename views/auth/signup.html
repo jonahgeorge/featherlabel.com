@@ -30,13 +30,15 @@
 
 	<div class="form-group">
 		<div class="col-sm-offset-2 col-sm-10">
-			<button class="pull-left btn btn-default" type="submit">Sign Up</button>
-			<a class="pull-left btn btn-default" href="/" style="margin-left:5px">Cancel</a>
-			<a class="pull-right btn btn-default" href="/signin">Sign In</a>
+			<button class="pull-left btn btn-default" type="submit">Submit</button>
 		</div>
 	</div>
 
 </form>
+
+<div class="col-sm-offset-2 col-sm-10">
+	Already have an account? <a href="/login">Log In</a>
+</div>
 
 {{ template "_templates/footer" . }}
 {{ end }} 

@@ -10,7 +10,9 @@ import (
 	"github.com/gosexy/yaml"
 )
 
-var db *sql.DB
+var (
+	db *sql.DB
+)
 
 func init() {
 	// Load config file
@@ -32,6 +34,4 @@ func init() {
 
 	// Sets the maximum number of connections in the idle connection pool
 	db.SetMaxIdleConns(100)
-
-	log.Printf("<== Database connection initialized\n")
 }

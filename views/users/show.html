@@ -55,12 +55,10 @@
 				<div class="panel-heading">
 					<h3 class="panel-title">Discography</h3>
 				</div>
-				<div class="panel-body">
-					<div class="list-group">
-						{{range .Songs}}
-						<a class="list-group-item" href="/songs/{{ .Id }}">{{ .Title }}</a>
-						{{end}}
-					</div>
+				<div class="list-group">
+					{{range .Songs}}
+					<a class="list-group-item" href="/songs/{{ .Id }}">{{ .Title }}</a>
+					{{end}}
 				</div>
 			</div>
 		</div>
